@@ -1,0 +1,595 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #2c2c2c;
+    font-family: 'Press Start 2P', monospace;
+    color: white;
+    overflow: hidden;
+}
+
+.main-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #3a3a3a;
+    padding: 0;
+    overflow: hidden;
+}
+
+.header-title {
+    background-color: #2a2a2a;
+    padding: 15px;
+    text-align: center;
+    font-size: 14px;
+    color: #fff;
+    text-shadow: 2px 2px 0px #000;
+    letter-spacing: 2px;
+    border-bottom: 3px solid #000;
+}
+
+.content-area {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    gap: 15px;
+    overflow: hidden;
+}
+
+/* Panel izquierdo */
+.left-panel {
+    /* Allow the left panel to grow and fill available vertical space */
+    flex: 1 1 260px;
+    width: auto;
+    min-width: 200px;
+    /* max-width: 50%; */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0; /* enable proper flex scrolling */
+    overflow: hidden;
+}
+
+.biblioteca-section {
+    /* Make biblioteca stretch to fill the left panel and allow inner scrolling */
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.section-title {
+    font-size: 12px;
+    margin-bottom: 8px;
+    color: white;
+    text-shadow: 2px 2px 0px #000;
+    letter-spacing: 1px;
+    text-align: center;
+}
+
+.biblioteca-wrapper {
+    /* Wrapper grows to fill section so the container can scroll to use remaining area */
+    flex: 1 1 auto;
+    display: flex;
+    gap: 8px;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.biblioteca-scrollbar {
+    width: 20px;
+    background-color: #808080;
+    border: 3px solid #404040;
+    border-top-color: #c0c0c0;
+    border-left-color: #c0c0c0;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.scrollbar-thumb {
+    width: 100%;
+    background-color: #404040;
+    border: 2px solid #000;
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+    min-height: 30px;
+}
+
+.scrollbar-thumb:hover {
+    background-color: #505050;
+}
+
+.scrollbar-thumb:active {
+    background-color: #303030;
+}
+
+.biblioteca-container {
+    background-color: #c0c0c0;
+    border: 4px solid #808080;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-right-color: #404040;
+    border-bottom-color: #404040;
+    /* dar más espacio a la derecha para separar visualmente del inventario */
+    padding: 8px 14px 8px 8px; /* top/right/bottom/left */
+    overflow-y: auto; /* scroll interno cuando haya más items que espacio disponible */
+    overflow-x: hidden;
+    flex: 1 1 auto; /* permitir que rellene el espacio disponible dentro del wrapper */
+    scrollbar-width: none;
+    max-height: none; /* allow filling available space */
+    box-sizing: border-box;
+    margin-right: 6px; /* pequeño margen externo para separar del panel derecho */
+    scroll-snap-type: y mandatory; /* snap para filas completas al hacer scroll */
+}
+
+.biblioteca-container::-webkit-scrollbar {
+    display: none;
+}
+
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(38px, 1fr));
+    gap: 6px;
+    padding: 5px;
+    grid-auto-rows: 56px; /* altura fija por fila = item slot (50) + gap (6) */
+    align-content: start; /* empacar filas arriba */
+    scroll-snap-align: start;
+}
+
+.biblioteca-container .item-slot {
+    width: 50px;
+    height: 50px;
+    scroll-snap-align: start; /* cada celda puede ser punto de snap */
+}
+
+.biblioteca-container .item-slot img {
+    max-width: 40px;
+    max-height: 40px;
+}
+
+.inventario-container {
+    background-color: #c0c0c0;
+    border: 4px solid #808080;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-right-color: #404040;
+    border-bottom-color: #404040;
+    padding: 5px;
+}
+
+.inventario-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, 1fr);
+    gap: 5px;
+    padding: 0;
+}
+
+.item-slot {
+    width: 38px;
+    height: 38px;
+    background-color: #808080;
+    border: 2px solid #404040;
+    border-top-color: #c0c0c0;
+    border-left-color: #c0c0c0;
+    border-right-color: #000000;
+    border-bottom-color: #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.1s ease;
+}
+
+.item-slot:hover {
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    transform: translate(-1px, -1px);
+}
+
+.item-slot.dragging {
+    opacity: 0.5;
+    transform: scale(1.1);
+}
+
+.item-slot.drag-over {
+    background-color: #ffff99;
+    border-color: #ffcc00;
+}
+
+.item-slot.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    filter: grayscale(70%);
+}
+
+.item-slot.disabled:hover {
+    border-top-color: #c0c0c0;
+    border-left-color: #c0c0c0;
+    transform: none;
+}
+
+.item-slot.occupied {
+    background-color: #a0a0a0;
+}
+
+.item-slot img {
+    max-width: 30px;
+    max-height: 30px;
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+/* Panel derecho */
+.right-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.top-right-section {
+    display: flex;
+    align-items: stretch; /* permitir que los hijos tengan la misma altura */
+    max-width: 100%;
+    width: 100%;
+    justify-content: center;
+}
+
+.inventario-wrapper {
+    flex: 0 0 auto;
+    width: 68px;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    align-self: stretch; /* estira para coincidir con la altura del contenedor */
+}
+
+.inventario-left,
+.inventario-right {
+    justify-content: center;
+}
+
+.masa-wrapper {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    max-width: 200px;
+    height: auto;
+    align-self: stretch; /* estira para coincidir con las columnas de inventario */
+}
+
+.bottom-right-section {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end; /* Alinear la fila a la derecha, junto al inventario */
+    gap: 20px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.items-counter {
+    font-size: 12px;
+    color: #fff;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.masa-display {
+    width: 100%;
+    height: 100%;
+    background-color: #ffffff;
+    border: 3px solid #808080;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-right-color: #404040;
+    border-bottom-color: #404040;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-size: auto 100%;
+    background-position: center center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+    position: relative;
+}
+
+.masa-display.empty {
+    background-image: none;
+}
+
+.masa-display img {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+}
+
+.btn-listo {
+    background-color: #c0c0c0;
+    color: #000;
+    border: 4px solid #808080;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-right-color: #404040;
+    border-bottom-color: #404040;
+    padding: 12px 30px;
+    font-size: 14px;
+    font-family: 'Press Start 2P', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    width: auto;
+    /* No permitir que el botón se encoja o se estire de forma inesperada */
+    flex: 0 0 auto;
+    min-width: 110px; /* asegurar tamaño mínimo para el texto */
+    white-space: nowrap; /* evitar que el texto haga wrap y sea cortado */
+    overflow: visible;
+}
+
+.btn-listo.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #808080;
+}
+
+.btn-listo:hover {
+    background-color: #d0d0d0;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    transform: translate(-1px, -1px);
+}
+
+.btn-listo:active {
+    border-top-color: #404040;
+    border-left-color: #404040;
+    border-right-color: #ffffff;
+    border-bottom-color: #ffffff;
+    transform: translate(1px, 1px);
+}
+
+/* Responsive: reducir padding/size del botón en pantallas pequeñas para asegurar visibilidad */
+@media (max-width: 600px) {
+    .bottom-right-section {
+        gap: 12px;
+        margin-top: 16px;
+    }
+    .btn-listo {
+        padding: 8px 16px;
+        font-size: 12px;
+        min-width: 90px;
+    }
+}
+
+@media (max-width: 400px) {
+    .btn-listo {
+        padding: 6px 12px;
+        font-size: 11px;
+        min-width: 70px;
+    }
+}
+
+/* Popup de bienvenida */
+.welcome-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.welcome-content {
+    background-color: #3a3a3a;
+    border: 4px solid #000;
+    padding: 40px 60px;
+    text-align: center;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+}
+
+.welcome-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 24px;
+    color: #fff;
+    margin: 0 0 30px 0;
+    letter-spacing: 2px;
+    line-height: 1.6;
+}
+
+.btn-comenzar-seleccion {
+    background-color: #fff;
+    color: #000;
+    border: 3px solid #000;
+    padding: 15px 50px;
+    font-size: 16px;
+    font-family: 'Press Start 2P', monospace;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    box-shadow: 4px 4px 0 #000;
+}
+
+.btn-comenzar-seleccion:hover {
+    background-color: #000;
+    color: #fff;
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 #000;
+}
+
+.btn-comenzar-seleccion:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0 0 0 #000;
+}
+
+/* Overlay de item */
+.item-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.overlay-content {
+    background-color: #ffffdd;
+    border: 3px solid #000;
+    padding: 20px;
+    max-width: 400px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    box-shadow: 5px 5px 0px #000;
+}
+
+.overlay-item-icon {
+    width: 80px;
+    height: 80px;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    flex-shrink: 0;
+}
+
+.overlay-item-info {
+    flex: 1;
+}
+
+.overlay-item-name {
+    font-size: 12px;
+    margin: 0 0 10px 0;
+    color: #000;
+}
+
+.overlay-item-desc {
+    font-size: 10px;
+    line-height: 1.6;
+    margin: 0;
+    color: #333;
+}
+
+.overlay-btn-add {
+    width: 40px;
+    height: 40px;
+    background-color: #fff;
+    border: 3px solid #000;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.overlay-btn-add:hover {
+    background-color: #000;
+    color: #fff;
+}
+
+/* Scrollbar personalizada para otros elementos */
+.left-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+.left-panel::-webkit-scrollbar-track {
+    background: #808080;
+}
+
+.left-panel::-webkit-scrollbar-thumb {
+    background: #404040;
+    border: 1px solid #000;
+}
+
+/* Media queries para ajuste responsive */
+@media screen and (min-width: 768px) {
+    .items-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+@media screen and (max-width: 767px) and (min-width: 600px) {
+    .items-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+@media screen and (max-width: 599px) {
+    /* On small screens prefer 3 columns so items don't get cut; allow scroll to extend */
+    .items-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .items-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .content-area {
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .biblioteca-container .item-slot {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .biblioteca-container .item-slot img {
+        max-width: 26px;
+        max-height: 26px;
+    }
+}
+
+/* Ajustes para pantallas muy pequeñas */
+@media screen and (max-height: 450px) and (orientation: landscape) {
+    .content-area {
+        padding: 8px 8px 16px 8px;
+        gap: 8px;
+    }
+    
+    .section-title {
+        font-size: 10px;
+        margin-bottom: 5px;
+    }
+    
+    .item-slot {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .item-slot img {
+        max-width: 28px;
+        max-height: 28px;
+    }
+    
+    .btn-listo {
+        padding: 10px 25px;
+        font-size: 11px;
+        /* max-width: 33%; */
+    }
+}
